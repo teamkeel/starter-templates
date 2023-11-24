@@ -1,17 +1,7 @@
 [
   {
-    "name": "Simple todo",
+    "name": "Simple todo app",
     "description": "",
     "path": "todo"
-  },
-  {
-    "name": "SaaS Starter",
-    "description": "",
-    "path": "saas-starter"
-  },
-  {
-    "name": "Twitter clone",
-    "description": "",
-    "path": "twitter"
   }
 ]
