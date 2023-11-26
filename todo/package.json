@@ -1,11 +1,10 @@
 {
-  "name": "exampleProject",
+  "name": "example-todo-app",
   "dependencies": {
     "@teamkeel/functions-runtime": "^0.370.1",
     "@teamkeel/testing-runtime": "^0.370.1",
     "kysely": "^0.23.4",
-    "node-fetch": "^3.3.0",
-    "ts-node": "^10.9.1"
+    "node-fetch": "^3.3.0"
   },
   "devDependencies": {
     "@types/node": "^18.11.18",
