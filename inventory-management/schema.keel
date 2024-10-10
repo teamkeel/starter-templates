@@ -1,0 +1,225 @@
+// Visit https://docs.keel.so/ for documentation on how to get started
+model User {
+    fields {
+        identity Identity @unique
+        firstName Text
+        lastName Text
+        email Text @unique
+        suppliersApproved Supplier[]
+    }
+
+    actions {
+        create createUser() with (firstName, lastName, email) {
+            @set(user.identity = ctx.identity)
+            @permission(expression: ctx.isAuthenticated == true)
+        }
+        update updateUser(id) with (firstName?, lastName?, email?) {
+            //Only allow Admin roles to update users
+            @permission(roles: [Admin])
+        }
+        update updateMyUserDetails(id) with (firstName?, lastName?, email?) {
+            //Only allow user to update their own account
+            @permission(expression: user.identity == ctx.identity)
+        }
+        get getUser(id) {
+            //Only allow user to see their own account
+            @permission(expression: user.identity == ctx.identity)
+        }
+        list listUser()
+        delete deleteUser(id)
+    }
+
+    @permission(
+        roles: [Admin],
+        actions: [get, list, delete]
+    )
+}
+
+role Admin {
+    emails {
+        "benoit@keel.xyz"
+    }
+}
+
+role Staff {
+    domains {
+        "@keel.xyz"
+    }
+}
+
+model Supplier {
+    fields {
+        name Text
+        address Text
+        email Text
+        status SupplierStatus
+        products Product[]
+        approvedBy User?
+    }
+
+    actions {
+        create createSupplier() with (name, address, email) {
+            @set(supplier.status = SupplierStatus.New)
+        }
+        get getSupplier(id)
+        list listSupplier()
+        delete deleteSupplier(id)
+        update approveSupplier(id) {
+            @set(supplier.status = SupplierStatus.Approved)
+            //Set approvedBy to the user who approved the supplier
+            @set(supplier.approvedBy = ctx.identity.user)
+            //Accomodates for supplier approval flow. Only Admin roles can approve suppliers.
+            @permission(roles: [Admin])
+        }
+    }
+
+    @permission(
+        expression: true,
+        actions: [create, delete, get, list]
+    )
+}
+
+enum SupplierStatus {
+    New
+    Approved
+}
+
+model Product {
+    fields {
+        name Text
+        description Text?
+        supplier Supplier?
+        price Number
+        variants ProductVariant[]
+    }
+
+    actions {
+        create createProduct() with (name, description?, supplier.id?, price)
+        list listProduct()
+        get getProduct(id)
+        update updateProduct(id)
+        delete deleteProduct(id)
+    }
+
+    @permission(
+        roles: [Admin],
+        actions: [create, list, get, update, delete]
+    )
+}
+
+model ProductVariant {
+    fields {
+        product Product
+        shopifyId ID?
+        quickBookItemId ID?
+        size ProductVariantSize
+        sku Text @unique
+        inventoryLevels InventoryLevel[]
+    }
+
+    actions {
+        create createProductVariant() with (
+            product.id,
+            shopifyId?,
+            quickBookItemId?,
+            size,
+            sku,
+        )
+        list listProductVariant()
+        list listProductProductVariant(product.id)
+        get getProductVariant(id)
+        update updateProductVariant(id)
+        delete deleteProductVariant(id)
+    }
+
+    @permission(
+        roles: [Admin],
+        actions: [create, delete]
+    )
+
+    @permission(
+        roles: [Staff],
+        actions: [list, get, update]
+    )
+}
+
+enum ProductVariantSize {
+    Xs
+    S
+    M
+    L
+    Xl
+    Xxl
+}
+
+model InventoryLocation {
+    fields {
+        address Text @unique
+        type InventoryLocationType
+        inventoryLevel InventoryLevel[]
+    }
+
+    actions {
+        create createInventoryLocation() with (address, type)
+        list listInventoryLocations()
+        get getInventoryLocation(id)
+        update updateInventoryLocation(id)
+        delete deleteInventoryLocation(id)
+    }
+
+    @permission(
+        roles: [Admin],
+        actions: [create, delete]
+    )
+
+    @permission(
+        roles: [Staff],
+        actions: [list, get]
+    )
+}
+
+model InventoryLevel {
+    fields {
+        productVariant ProductVariant
+        inventoryLocation InventoryLocation
+        available Number?
+        commited Number?
+        reserved Number?
+        damaged Number?
+        incoming Number?
+    }
+
+    actions {
+        create createInventoryLevel() with (
+            productVariant.id,
+            inventoryLocation.id,
+            available?,
+            commited?,
+            reserved?,
+            damaged?,
+            incoming?,
+        )
+        list listInventoryLevel() {
+            @embed(productVariant)
+        }
+        list listProductVariantInventoryLevel(productVariant.id)
+        get getInventoryLevel(id)
+        update updateInventoryLevel(id)
+        delete deleteInventoryLevel(id)
+    }
+
+    @permission(
+        roles: [Admin],
+        actions: [delete]
+    )
+
+    @permission(
+        roles: [Staff],
+        actions: [create, update, list, get]
+    )
+}
+
+enum InventoryLocationType {
+    Warehouse
+    Shop
+}
