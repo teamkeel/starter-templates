@@ -3,5 +3,10 @@
     "name": "Simple Todo app",
     "description": "",
     "path": "todo"
+  },
+  {
+    "name": "Inventory Management",
+    "description": "",
+    "path": "inventory-management"
   }
 ]
