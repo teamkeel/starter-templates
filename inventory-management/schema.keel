@@ -43,7 +43,7 @@ role Admin {
 
 role Staff {
     domains {
-        "@keel.xyz"
+        "keel.xyz"
     }
 }
 
